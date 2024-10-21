@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    command: python pipeline.py
