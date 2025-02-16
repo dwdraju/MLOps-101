@@ -1,5 +1,23 @@
-# Kubeflow Setup with kind Cluster
-## Install kubectl and kustomize
+# Kubeflow Setup with Kind Cluster
+
+## Kubeflow Pipeline Representation
+### Pipeline Overview  
+This simple pipeline automates the process of fine-tuning a Hugging Face NLP model using Kubeflow Pipelines. It consists of four main stages:
+
+1. **Preprocessing** → Runs `preprocess.py` to prepare the dataset.  
+2. **Training** → Uses `train.py` to fine-tune the model.  
+3. **Evaluation** → Runs `evaluate.py` to assess model performance.  
+4. **Deployment** → Deploys the trained model using `deploy.py`.  
+
+### Build Docker and Generate Pipeline yaml File
+```
+docker-compose up -d
+```
+
+---
+
+## Infrastructure Setup
+### Install kubectl and kustomize
 ```
 
 # Add or update sysctl configuration
@@ -19,7 +37,7 @@ curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack
 sudo mv /home/ubuntu/kustomize /usr/local/bin/kustomize
 ```
 
-## Install kind
+### Install kind
 ```
 # For AMD64 / x86_64
 [ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64
@@ -29,7 +47,7 @@ chmod +x ./kind
 sudo mv ./kind /usr/local/bin/kind
 ```
 
-## Install docker
+### Install docker
 ```
 # Add Docker's official GPG key:
 sudo apt-get update
@@ -51,7 +69,7 @@ sudo usermod -aG docker $USER
 exit
 ```
 
-## Install
+### Create Kind Cluster
 ```
 cat <<EOF | kind create cluster --name=kubeflow --config=-
 kind: Cluster
@@ -91,12 +109,12 @@ while ! kustomize build example | kubectl apply -f -; do echo "Retrying to apply
 
 ```
 
-## Accessing Cluster
+### Access Kubeflow Dashboard
 ```
 kubectl port-forward svc/istio-ingressgateway -n istio-system 8080:80 --address=0.0.0.0.0
 ```
 
-# OR
+*OR*
 
 ```
 kubectl patch deployments.apps -n istio-system istio-ingressgateway -p '{"spec":{"template":{"spec":{"containers":[{"name":"istio-proxy","ports":[{"containerPort":8080,"hostPort":80},{"containerPort":8443,"hostPort":443}]}]}}}}'

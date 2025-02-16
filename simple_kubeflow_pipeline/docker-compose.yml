@@ -2,6 +2,7 @@ version: '3'
 
 services:
   pipeline:
+    container_name: kubeflow_pipeline
     build:
       context: .
       dockerfile: Dockerfile

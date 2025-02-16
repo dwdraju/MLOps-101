@@ -6,7 +6,7 @@ components:
     executorLabel: exec-deploy-component
     inputDefinitions:
       artifacts:
-        model_path:
+        model:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
@@ -14,7 +14,7 @@ components:
     executorLabel: exec-evaluate-component
     inputDefinitions:
       artifacts:
-        model_path:
+        model:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
@@ -36,7 +36,7 @@ components:
     executorLabel: exec-train-component
     inputDefinitions:
       artifacts:
-        input_data_path:
+        input_data:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
@@ -60,7 +60,7 @@ deploymentSpec:
         - -c
         - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
           \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
-          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.11.0'\
           \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
           $0\" \"$@\"\n"
         - sh
@@ -74,9 +74,8 @@ deploymentSpec:
 
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
-          \ *\n\ndef deploy_component(model_path: Input[Artifact]):\n    import subprocess\n\
-          \    model_path=model_path.path\n    subprocess.run(['python', 'deploy.py',\
-          \ '--model', model_path])\n\n"
+          \ *\n\ndef deploy_component(model: Input[Artifact]):\n    import subprocess\n\
+          \n    subprocess.run(['python', 'deploy.py', '--model', model.path])\n\n"
         image: dwdraju/mlops:kubeflow-pipeline-v12
     exec-evaluate-component:
       container:
@@ -90,7 +89,7 @@ deploymentSpec:
         - -c
         - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
           \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
-          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.11.0'\
           \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
           $0\" \"$@\"\n"
         - sh
@@ -104,11 +103,9 @@ deploymentSpec:
 
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
-          \ *\n\ndef evaluate_component(model_path: Input[Artifact], metrics_output:\
-          \ Output[Artifact]):\n    import subprocess\n    model_path = model_path.path\n\
-          \    metrics_output_path = metrics_output.path\n    subprocess.run(['python',\
-          \ 'evaluate.py', '--model', model_path, '--metrics', metrics_output_path])\n\
-          \n"
+          \ *\n\ndef evaluate_component(model: Input[Artifact], metrics_output: Output[Artifact]):\n\
+          \    import subprocess\n\n    subprocess.run(['python', 'evaluate.py', '--model',\
+          \ model.path, '--metrics', metrics_output.path])\n\n"
         image: dwdraju/mlops:kubeflow-pipeline-v12
     exec-preprocess-component:
       container:
@@ -122,7 +119,7 @@ deploymentSpec:
         - -c
         - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
           \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
-          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.11.0'\
           \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
           $0\" \"$@\"\n"
         - sh
@@ -137,14 +134,11 @@ deploymentSpec:
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
           \ *\n\ndef preprocess_component(output_data: Output[Artifact]):\n    import\
-          \ subprocess\n    import os\n    output_data_path = output_data.path\n \
-          \   # Ensure the output directory exists\n    # os.makedirs(os.path.dirname(output_data_path),\
-          \ exist_ok=True)\n\n    # Run the preprocess.py script, passing the output\
-          \ path\n    result = subprocess.run(['python', 'preprocess.py', '--output',\
-          \ output_data_path])\n\n    # Check if the script executed correctly\n \
-          \   if result.returncode != 0:\n        raise RuntimeError(f\"Preprocessing\
-          \ failed with error: {result.stderr}\")\n\n    print(f\"Preprocessing completed.\
-          \ Output saved to {output_data_path}\")\n\n"
+          \ subprocess\n\n    result = subprocess.run(['python', 'preprocess.py',\
+          \ '--output', output_data.path])\n\n    if result.returncode != 0:\n   \
+          \     raise RuntimeError(f\"Preprocessing failed with error: {result.stderr}\"\
+          )\n\n    print(f\"Preprocessing completed. Output saved to {output_data.path}\"\
+          )\n\n"
         image: dwdraju/mlops:kubeflow-pipeline-v12
     exec-train-component:
       container:
@@ -158,7 +152,7 @@ deploymentSpec:
         - -c
         - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
           \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
-          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.9.0'\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.11.0'\
           \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
           $0\" \"$@\"\n"
         - sh
@@ -172,11 +166,9 @@ deploymentSpec:
 
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
-          \ *\n\ndef train_component(input_data_path: Input[Artifact], model_output:\
-          \ Output[Artifact]):\n    input_data_path=input_data_path.path\n    model_output_path\
-          \ = model_output.path\n    import subprocess\n    subprocess.run(['python',\
-          \ 'train.py', '--input', input_data_path, '--output', model_output_path])\n\
-          \n"
+          \ *\n\ndef train_component(input_data: Input[Artifact], model_output: Output[Artifact]):\n\
+          \    import subprocess\n\n    subprocess.run(['python', 'train.py', '--input',\
+          \ input_data.path, '--output', model_output.path])\n\n"
         image: dwdraju/mlops:kubeflow-pipeline-v12
 pipelineInfo:
   description: Pipeline for fine-tuning a Hugging Face model.
@@ -193,7 +185,7 @@ root:
         - train-component
         inputs:
           artifacts:
-            model_path:
+            model:
               taskOutputArtifact:
                 outputArtifactKey: model_output
                 producerTask: train-component
@@ -208,7 +200,7 @@ root:
         - train-component
         inputs:
           artifacts:
-            model_path:
+            model:
               taskOutputArtifact:
                 outputArtifactKey: model_output
                 producerTask: train-component
@@ -230,11 +222,11 @@ root:
         - preprocess-component
         inputs:
           artifacts:
-            input_data_path:
+            input_data:
               taskOutputArtifact:
                 outputArtifactKey: output_data
                 producerTask: preprocess-component
         taskInfo:
           name: train-component
 schemaVersion: 2.1.0
-sdkVersion: kfp-2.9.0
+sdkVersion: kfp-2.11.0
