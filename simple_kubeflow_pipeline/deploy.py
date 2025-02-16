@@ -1,7 +1,7 @@
 import argparse
 
 def deploy(model_path: str):
-    with open(model_path, 'r') as f:
+    with open(model_path, 'r', encoding='utf-8') as f:
         model_info = f.read()
     print(f"Deploying model: {model_info}")
 

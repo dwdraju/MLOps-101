@@ -1,9 +1,9 @@
 import argparse
 
 def evaluate(model_path: str, metrics_output_path: str):
-    with open(model_path, 'r') as f:
+    with open(model_path, 'r', encoding='utf-8') as f:
         model_info = f.read()
-    with open(metrics_output_path, 'w') as f:
+    with open(metrics_output_path, 'w', encoding='utf-8') as f:
         f.write(f"metrics for {model_info}")
 
 def main():

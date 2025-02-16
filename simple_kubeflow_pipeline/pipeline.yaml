@@ -20,7 +20,7 @@ components:
             schemaVersion: 0.0.1
     outputDefinitions:
       artifacts:
-        metrics_output_path:
+        metrics_output:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
@@ -28,7 +28,7 @@ components:
     executorLabel: exec-preprocess-component
     outputDefinitions:
       artifacts:
-        output_data_path:
+        output_data:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
@@ -42,7 +42,7 @@ components:
             schemaVersion: 0.0.1
     outputDefinitions:
       artifacts:
-        model_output_path:
+        model_output:
           artifactType:
             schemaTitle: system.Artifact
             schemaVersion: 0.0.1
@@ -75,8 +75,9 @@ deploymentSpec:
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
           \ *\n\ndef deploy_component(model_path: Input[Artifact]):\n    import subprocess\n\
-          \    subprocess.run(['python', 'deploy.py', '--model', model_path])\n\n"
-        image: dwdraju/mlops:kubeflow-pipeline-v10
+          \    model_path=model_path.path\n    subprocess.run(['python', 'deploy.py',\
+          \ '--model', model_path])\n\n"
+        image: dwdraju/mlops:kubeflow-pipeline-v12
     exec-evaluate-component:
       container:
         args:
@@ -103,11 +104,12 @@ deploymentSpec:
 
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
-          \ *\n\ndef evaluate_component(model_path: Input[Artifact], metrics_output_path:\
-          \ Output[Artifact]):\n    import subprocess\n    subprocess.run(['python',\
+          \ *\n\ndef evaluate_component(model_path: Input[Artifact], metrics_output:\
+          \ Output[Artifact]):\n    import subprocess\n    model_path = model_path.path\n\
+          \    metrics_output_path = metrics_output.path\n    subprocess.run(['python',\
           \ 'evaluate.py', '--model', model_path, '--metrics', metrics_output_path])\n\
           \n"
-        image: dwdraju/mlops:kubeflow-pipeline-v10
+        image: dwdraju/mlops:kubeflow-pipeline-v12
     exec-preprocess-component:
       container:
         args:
@@ -134,16 +136,16 @@ deploymentSpec:
 
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
-          \ *\n\ndef preprocess_component(output_data_path: Output[Artifact]):\n \
-          \   import subprocess\n    import os\n\n    # Ensure the output directory\
-          \ exists\n    os.makedirs(os.path.dirname(output_data_path), exist_ok=True)\n\
-          \n    # Run the preprocess.py script, passing the output path\n    result\
-          \ = subprocess.run(['python', 'preprocess.py', '--output', output_data_path])\n\
-          \n    # Check if the script executed correctly\n    if result.returncode\
-          \ != 0:\n        raise RuntimeError(f\"Preprocessing failed with error:\
-          \ {result.stderr}\")\n\n    print(f\"Preprocessing completed. Output saved\
-          \ to {output_data_path}\")\n\n"
-        image: dwdraju/mlops:kubeflow-pipeline-v10
+          \ *\n\ndef preprocess_component(output_data: Output[Artifact]):\n    import\
+          \ subprocess\n    import os\n    output_data_path = output_data.path\n \
+          \   # Ensure the output directory exists\n    # os.makedirs(os.path.dirname(output_data_path),\
+          \ exist_ok=True)\n\n    # Run the preprocess.py script, passing the output\
+          \ path\n    result = subprocess.run(['python', 'preprocess.py', '--output',\
+          \ output_data_path])\n\n    # Check if the script executed correctly\n \
+          \   if result.returncode != 0:\n        raise RuntimeError(f\"Preprocessing\
+          \ failed with error: {result.stderr}\")\n\n    print(f\"Preprocessing completed.\
+          \ Output saved to {output_data_path}\")\n\n"
+        image: dwdraju/mlops:kubeflow-pipeline-v12
     exec-train-component:
       container:
         args:
@@ -170,11 +172,12 @@ deploymentSpec:
 
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
-          \ *\n\ndef train_component(input_data_path: Input[Artifact], model_output_path:\
-          \ Output[Artifact]):\n    import subprocess\n    subprocess.run(['python',\
+          \ *\n\ndef train_component(input_data_path: Input[Artifact], model_output:\
+          \ Output[Artifact]):\n    input_data_path=input_data_path.path\n    model_output_path\
+          \ = model_output.path\n    import subprocess\n    subprocess.run(['python',\
           \ 'train.py', '--input', input_data_path, '--output', model_output_path])\n\
           \n"
-        image: dwdraju/mlops:kubeflow-pipeline-v10
+        image: dwdraju/mlops:kubeflow-pipeline-v12
 pipelineInfo:
   description: Pipeline for fine-tuning a Hugging Face model.
   name: hf-nlp-pipeline
@@ -192,7 +195,7 @@ root:
           artifacts:
             model_path:
               taskOutputArtifact:
-                outputArtifactKey: model_output_path
+                outputArtifactKey: model_output
                 producerTask: train-component
         taskInfo:
           name: deploy-component
@@ -207,7 +210,7 @@ root:
           artifacts:
             model_path:
               taskOutputArtifact:
-                outputArtifactKey: model_output_path
+                outputArtifactKey: model_output
                 producerTask: train-component
         taskInfo:
           name: evaluate-component
@@ -229,7 +232,7 @@ root:
           artifacts:
             input_data_path:
               taskOutputArtifact:
-                outputArtifactKey: output_data_path
+                outputArtifactKey: output_data
                 producerTask: preprocess-component
         taskInfo:
           name: train-component

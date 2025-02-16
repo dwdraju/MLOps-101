@@ -6,7 +6,7 @@ def preprocess(output_path: str):
     dataset = load_dataset('davidadamczyk/ag_news-100', split='train[:1%]')  # Fetch a small subset of the dataset
 
     # Write the dataset to the file at output_path
-    with open(output_path, 'w') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         for item in dataset:
             f.write(f"{item['text']}\t{item['label']}\n")  # Format: text tab label
 
