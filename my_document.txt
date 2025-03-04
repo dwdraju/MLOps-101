@@ -1,0 +1,3 @@
+Cloud computing made life easier! No more big servers.  
+
+With serverless and containers, it’s faster and cheaper. Security’s still key, but things are looking smart with AI and multi-cloud.

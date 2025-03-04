@@ -1,3 +1,27 @@
-# MLOps-101
+# Document-Based Q&A with LangChain & Google Gemini  
 
-This repository provides a hands-on introduction to MLOps principles and practices.  It covers key concepts and demonstrates their application through practical examples.  The goal is to equip learners with a foundational understanding of how to build, deploy, and manage machine learning models in cloud-native environment.
+This project demonstrates how to use **LangChain** with **Google Gemini** for building a simple document-based Q&A system. It loads a document, processes it into chunks, stores embeddings in FAISS, and retrieves answers using Gemini AI.  
+
+## Features  
+- Load and split a document into chunks  
+- Generate embeddings using Google Gemini  
+- Store embeddings in a FAISS vector database  
+- Use a retrieval-based model to answer queries  
+
+## Requirements  
+- Python 3.8+  
+- Install dependencies:  
+  ```sh
+  pip install -r requirements.txt
+  ```  
+
+## Setup  
+1. Add your **Google API Key** in a `.env` file (copy from `.env.example`):  
+   ```plaintext
+   GOOGLE_API_KEY=your_api_key_here
+   ```  
+2. Place your document in `my_document.txt`.  
+3. Run the script:  
+   ```sh
+   python script.py
+   ```
