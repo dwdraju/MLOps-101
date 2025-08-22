@@ -19,8 +19,30 @@ uv run server.py
 ```
 
 ## Deploy
-- The project includes a `Dockerfile` and can be deployed to Cloud Run or another container platform. Typical Cloud Run flow:
+-- The project includes a `Dockerfile` and mcp server can be deployed to Cloud Run or another container platform. Typical Cloud Run flow:
 
 ```bash
 gcloud run deploy company-info-mcp-server --allow-unauthenticated --region=us-central1 --source=.
 ```
+
+## Agent example
+
+- A simple example agent is provided in `agent.py` which calls the server's tools and prints results.
+
+Prerequisites: start the server first in one terminal:
+
+```bash
+uv run server.py
+```
+
+Then in another terminal run the agent:
+
+```bash
+uv run agent.py
+```
+
+Environment variables:
+- `HOST` — default `127.0.0.1`
+- `PORT` — default `8081`
+
+Expected output: the agent prints results for `get_company_location` and `get_company_details` for the hard-coded company (Acxiom). If the server is not running you'll see a network or initialization error.
